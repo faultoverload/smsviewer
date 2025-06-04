@@ -55,8 +55,8 @@ A web-based application to parse, view, and manage SMS backup files (XML format)
 ### **Setup**
 1. Clone the repository:
    ```bash
-   git clone https://github.com/your-username/sms-viewer.git
-   cd sms-viewer
+   git clone https://github.com/your-username/smsviewer.git
+   cd smsviewer
    ```
 2. Open `index.html` in your browser.
 
