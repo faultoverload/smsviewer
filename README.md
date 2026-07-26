@@ -2,6 +2,78 @@
 
 Version 2 is an offline-first browser application for viewing, searching, and exporting XML message backups created by the Android app **SMS Backup & Restore** by SyncTech. This project is independent and is not affiliated with or endorsed by SyncTech.
 
+All message processing happens locally in your browser. The application does not upload your backup or message contents.
+
+## Screenshots
+
+### Main interface
+
+![SMS Viewer and Exporter main interface](images/main-interface-light.png)
+
+### Dark mode
+
+![SMS Viewer and Exporter dark mode](images/main-interface-dark.png)
+
+### Conversation PDF export
+
+![PDF export example](images/pdf-export.png)
+
+> The screenshots use synthetic demonstration data. Do not publish screenshots containing real messages, phone numbers, names, or other personal information.
+
+## Quick start
+
+### Option 1: Open `index.html` directly — easiest
+
+This is the simplest way to use the application and does not require Python, Node.js, npm, installation, or an internet connection.
+
+1. Download the latest release ZIP from GitHub.
+2. Extract the complete ZIP. Do not move `index.html` away from the other files and folders.
+3. Double-click `index.html` or open it with a modern browser.
+4. Choose the default country used by the phone when the backup was created.
+5. Select or drag an SMS Backup & Restore XML file into the viewer.
+
+For ordinary backups, direct opening should provide the normal viewer, contact list, conversation search, PDF export, and CSV/JSON downloads. Browser behavior for local `file://` pages is not completely identical across all browsers, so persistent storage and very large exports can be less predictable.
+
+### Option 2: Start a local server — most reliable
+
+A local server is optional. It does **not** upload the backup and it is not an application backend. It only lets the browser open the same local files through a stable `http://localhost` address instead of a browser-dependent `file://` address.
+
+From the extracted application folder, run:
+
+```bash
+python3 -m http.server 8000 --bind 127.0.0.1
+```
+
+Then open:
+
+```text
+http://127.0.0.1:8000
+```
+
+Stop the server with <kbd>Ctrl</kbd>+<kbd>C</kbd> when finished.
+
+Using localhost is recommended when:
+
+- the browser does not allow the application to work correctly after opening `index.html` directly;
+- the last imported index is not restored reliably after restarting the browser;
+- the backup is very large;
+- a Chromium-based browser should stream a large CSV or JSON export directly to disk;
+- the application is being tested or developed.
+
+The `--bind 127.0.0.1` option keeps the temporary server available only on the same computer.
+
+### Direct opening compared with localhost
+
+| Capability | Open `index.html` directly | Open through localhost or HTTPS |
+|---|---|---|
+| View and search an XML backup | Expected to work in common desktop browsers | Yes |
+| PDF export | Expected to work | Yes |
+| CSV/JSON export up to 100,000 indexed messages | Blob-download fallback | Yes |
+| CSV/JSON export above 100,000 indexed messages | May be unavailable | Direct-to-disk streaming in supported Chromium browsers |
+| Restore the IndexedDB index after a browser restart | Browser-dependent | More predictable because the page has a stable origin |
+| Python required | No | Only to start the optional local server |
+| Messages uploaded | No | No |
+
 ## What Version 2 changes
 
 - All application and third-party files are bundled locally; no CDN is contacted.
@@ -45,39 +117,6 @@ Example with Germany selected:
 
 A number beginning with `+` or `00` is parsed as an international number regardless of the selected country. The setting can be changed later, but an already imported backup must be imported again before its existing index uses the new country.
 
-## Installation
-
-Clone the repository:
-
-```bash
-git clone https://github.com/petrk94/smsviewer.git
-cd smsviewer
-```
-
-Downloadable source archives are also available from the GitHub Releases page.
-
-## Running the viewer
-
-### Recommended
-
-Serve the folder through a local web server or publish it through GitHub Pages:
-
-```bash
-python3 -m http.server 8000
-```
-
-Then open:
-
-```text
-http://localhost:8000
-```
-
-This gives the browser a normal origin and provides the most reliable IndexedDB, persistent-storage, and streaming-export behavior.
-
-### Direct file opening
-
-Opening `index.html` directly may work for ordinary imports, depending on the browser. Very large backups should be opened through `http://localhost` or HTTPS because browser storage and file-export capabilities are more reliable in a secure origin.
-
 ## Large-backup design
 
 Version 2 does not promise that every multi-gigabyte backup will fit within every browser's local storage quota. It is designed to avoid the two most common failure modes:
@@ -94,9 +133,9 @@ Messages are written to IndexedDB in batches. Only one 200-message conversation 
 - **PDF:** selected conversation, limited to 5,000 messages to prevent browser-memory exhaustion
 - **Print:** currently visible 200-message window, rendered by the browser with its full installed Unicode-font support
 
-The compact PDF export uses jsPDF's built-in Helvetica font. Emoji are written as `[emoji]`, and characters outside that font's supported encoding are written as `?`. This prevents the broken spacing and clipped lines that raw emoji surrogate pairs can otherwise cause in standard-font PDFs. These substitutions affect only the PDF; the original messages remain unchanged in the viewer, CSV, and JSON exports. Use **Print current page (Unicode)** and the browser's **Save as PDF** option when exact emoji or non-Latin glyphs are required.
+The compact PDF export uses jsPDF's built-in Helvetica font. Emoji are written as `[emoji]`, and characters outside that font's supported encoding are written as `?`. These substitutions affect only the PDF; the original messages remain unchanged in the viewer, CSV, and JSON exports. Use **Print current page (Unicode)** and the browser's **Save as PDF** option when exact emoji or non-Latin glyphs are required.
 
-Chromium-based browsers in a secure context can stream CSV and JSON directly to a user-selected file. Other browsers use an in-memory Blob fallback for backups of up to 100,000 records.
+Chromium-based browsers in a secure context can stream CSV and JSON directly to a user-selected file. Other environments use an in-memory Blob fallback for backups of up to 100,000 indexed messages.
 
 ## Privacy and security
 
@@ -108,19 +147,22 @@ Chromium-based browsers in a secure context can stream CSV and JSON directly to 
 
 Anyone with access to the same browser profile may be able to access that local index. Clear the site's browser storage when working on a shared computer.
 
-## Third-party software and licenses
+## Installation for developers
 
-Exact dependency versions and their license files are documented in [`THIRD_PARTY_NOTICES.md`](THIRD_PARTY_NOTICES.md). File sizes and SHA-256 checksums are recorded in [`vendor/manifest.json`](vendor/manifest.json). The short answer is: yes, redistributed libraries should be identified, and their required copyright and license notices must be retained. Version 2 keeps those notices both in the vendor files and in `vendor/licenses/`.
+Clone the repository:
 
-## Development
+```bash
+git clone https://github.com/petrk94/smsviewer.git
+cd smsviewer
+```
 
-Install the exact dependencies:
+Install the exact development dependencies:
 
 ```bash
 npm ci
 ```
 
-Rebuild the local vendor directory:
+Rebuild the bundled local vendor directory:
 
 ```bash
 npm run vendor
@@ -134,6 +176,12 @@ npm run test:performance
 npm run test:browser
 npm run test:syntax
 ```
+
+Python is used only by the optional local server command and the developer browser smoke test. It is not required to open `index.html` directly.
+
+## Third-party software and licenses
+
+Exact dependency versions and their license files are documented in [`THIRD_PARTY_NOTICES.md`](THIRD_PARTY_NOTICES.md). File sizes and SHA-256 checksums are recorded in [`vendor/manifest.json`](vendor/manifest.json). Redistributed libraries and their required copyright and license notices are retained in the vendor files and in `vendor/licenses/`.
 
 ## Project license
 
