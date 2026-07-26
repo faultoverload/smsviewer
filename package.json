@@ -1,0 +1,36 @@
+{
+  "name": "sms-viewer-and-exporter",
+  "version": "2.0.0",
+  "private": true,
+  "description": "Offline browser viewer and exporter for SMS Backup & Restore XML files.",
+  "license": "MIT",
+  "scripts": {
+    "vendor": "node scripts/copy-vendor.mjs",
+    "test": "node --test tests/core.test.js tests/parser.test.js tests/db.test.js tests/static.test.js",
+    "test:performance": "node --test tests/performance.test.js",
+    "test:browser": "python3 tests/browser_smoke.py",
+    "test:syntax": "node --check core.js && node --check stream-parser.js && node --check db.js && node --check app.js",
+    "test:browser:bundle": "esbuild tests/fake-indexeddb-entry.js --bundle --format=iife --platform=browser --outfile=tests/fake-indexeddb.iife.js",
+    "pretest:browser": "npm run test:browser:bundle"
+  },
+  "dependencies": {
+    "bootstrap": "5.3.8",
+    "jspdf": "4.2.1",
+    "libphonenumber-js": "1.13.9"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "devDependencies": {
+    "esbuild": "0.28.1",
+    "fake-indexeddb": "6.2.5"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/petrk94/smsviewer.git"
+  },
+  "bugs": {
+    "url": "https://github.com/petrk94/smsviewer/issues"
+  },
+  "homepage": "https://github.com/petrk94/smsviewer#readme"
+}

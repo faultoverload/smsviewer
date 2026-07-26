@@ -1,124 +1,140 @@
-# **SMS Viewer and Exporter**
+# SMS Viewer and Exporter
 
-A web-based application to parse, view, and manage SMS backup files (XML format) from the "SMS Backup & Restore"-App (not affiliated or connected with the developer) with advanced features like phone number normalization, contact filtering, and conversation export.
+Version 2 is an offline-first browser application for viewing, searching, and exporting XML message backups created by the Android app **SMS Backup & Restore** by SyncTech. This project is independent and is not affiliated with or endorsed by SyncTech.
 
----
+## What Version 2 changes
 
-## **Features**
+- All application and third-party files are bundled locally; no CDN is contacted.
+- Local phone numbers are normalized using a user-selected default country.
+- International numbers beginning with `+` or `00` keep their own country code.
+- XML files are read as a stream instead of being loaded into one large DOM document.
+- Parsed records are stored in IndexedDB instead of being held entirely in memory.
+- Conversations use a window of at most 200 rendered messages at a time.
+- Imports show progress and can be cancelled safely.
+- SMS and MMS text records are supported.
+- MMS attachment metadata is shown, while large base64 media payloads are skipped during indexing.
+- Full-backup CSV and JSON exports can stream directly to disk in supported browsers.
+- The application remains entirely client-side: message contents are not uploaded by this project.
 
-### **1. Phone Number Normalization**
-- Automatically removes international and local prefixes, ensuring all phone numbers are formatted uniformly.
-- Prevents duplicate contacts caused by formatting inconsistencies (e.g., `+49`, `0049`, `0176`).
+## Supported input
 
-### **2. SMS Parsing**
-- Processes XML files containing SMS backup data.
-- Groups messages by normalized phone numbers for consolidated conversations.
-- Extracts key details like timestamps, message content, and type (sent/received).
+The viewer intentionally supports the message-backup XML format produced by **SMS Backup & Restore**. It is not a general XML, database, VMSG, or CSV viewer.
 
-### **3. Contact Management**
-- Displays a scrollable, searchable list of unique contacts.
-- Dynamic filters to show all contacts, named contacts, or unknown numbers.
+Supported records:
 
-### **4. Chat View**
-- Clean, organized chat window to display conversations for selected contacts.
-- Differentiates between sent and received messages.
+- `<sms>` messages
+- `<mms>` messages, including text parts and attachment metadata
+- SMS/MMS records interleaved under the `<smses>` root element
 
-### **5. Export Options**
-- Export conversations in multiple formats:
-  - **CSV**: For spreadsheets.
-  - **JSON**: Machine-readable structured data.
-  - **PDF**: Printable format for archiving.
+Not currently displayed:
 
-### **6. User-Friendly Design**
-- Drag-and-drop support for XML uploads.
-- Dynamic search and filter functionality for contacts and messages.
-- Light and dark mode options for accessibility.
+- decoded MMS images, audio, or video
+- call-log backups under a `<calls>` root element
+- encrypted or compressed backups that have not first been extracted by the user
 
----
+## First start and country selection
 
-## **Built With**
+On first start, the viewer asks for the country where the phone was used when the backup was created. This setting is used only for local numbers without an explicit international prefix.
 
-- **HTML5**: For the structure of the application.
-- **CSS3** (Bootstrap): For responsive and modern UI design.
-- **JavaScript**: For dynamic functionality and XML processing.
-- **[jsPDF](https://github.com/parallax/jsPDF)**: To generate PDF exports.
-- **Bootstrap v5.x**: For styling and layout.
-- **[Font Awesome](https://fontawesome.com/)**: For icons used in the UI (optional).
+Example with Germany selected:
 
----
+```text
+0176 1234567     -> +49 176 1234567
++49 176 1234567  -> +49 176 1234567
+```
 
-## **Getting Started**
+A number beginning with `+` or `00` is parsed as an international number regardless of the selected country. The setting can be changed later, but an already imported backup must be imported again before its existing index uses the new country.
 
-### **Prerequisites**
-- A modern web browser (e.g., Chrome, Firefox, Edge).
+## Installation
 
-### **Setup**
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/your-username/smsviewer.git
-   cd smsviewer
-   ```
-2. Open `index.html` in your browser.
+Clone the repository:
 
----
+```bash
+git clone https://github.com/petrk94/smsviewer.git
+cd smsviewer
+```
 
-## **Usage**
+Downloadable source archives are also available from the GitHub Releases page.
 
-1. Drag and drop your SMS backup XML file into the upload area.
-2. Browse contacts and select a conversation to view messages.
-3. Use filters or search to find specific contacts or messages.
-4. Export conversations in your desired format (CSV, JSON, or PDF).
+## Running the viewer
 
----
+### Recommended
 
-## **External Dependencies**
+Serve the folder through a local web server or publish it through GitHub Pages:
 
-This application relies on the following external libraries:
-- **[jsPDF](https://github.com/parallax/jsPDF)**: For generating PDF exports.
-- **[Bootstrap](https://getbootstrap.com/)**: For responsive and modern UI.
-- **[Font Awesome](https://fontawesome.com/)**: For icons used in the UI (optional, if added).
+```bash
+python3 -m http.server 8000
+```
 
-To install dependencies locally, ensure you include these via a CDN in the `index.html` file or download them into the project.
+Then open:
 
----
+```text
+http://localhost:8000
+```
 
-## **Screenshots**
+This gives the browser a normal origin and provides the most reliable IndexedDB, persistent-storage, and streaming-export behavior.
 
-### **Main Interface**
-![Feature Screenshot](images/webapplication_with_loaded_xml_file.png "Main Interface Light mode")
+### Direct file opening
 
-### **Dark Mode**
-![Feature Screenshot](images/webapplication_with_loaded_xml_file_dark_mode.png "Main Interface Dark mode")
+Opening `index.html` directly may work for ordinary imports, depending on the browser. Very large backups should be opened through `http://localhost` or HTTPS because browser storage and file-export capabilities are more reliable in a secure origin.
 
----
+## Large-backup design
 
-## **Contributing**
+Version 2 does not promise that every multi-gigabyte backup will fit within every browser's local storage quota. It is designed to avoid the two most common failure modes:
 
-We welcome contributions to improve the project! Here's how you can help:
-1. Fork the repository.
-2. Create a feature branch:
-   ```bash
-   git checkout -b feature-name
-   ```
-3. Commit your changes:
-   ```bash
-   git commit -m "Add feature-name"
-   ```
-4. Push to your branch:
-   ```bash
-   git push origin feature-name
-   ```
-5. Open a pull request.
+1. The XML file is never converted into one complete in-memory DOM tree.
+2. MMS base64 media values are scanned and skipped rather than retained in JavaScript memory or IndexedDB.
 
----
+Messages are written to IndexedDB in batches. Only one 200-message conversation window is rendered at a time. For backups containing very large amounts of text, the browser still needs enough local storage for the indexed message text and metadata.
 
-## **License**
+## Exports
 
-This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
+- **CSV:** complete indexed backup
+- **JSON:** complete indexed backup
+- **PDF:** selected conversation, limited to 5,000 messages to prevent browser-memory exhaustion
+- **Print:** currently visible 200-message window, rendered by the browser with its full installed Unicode-font support
 
----
+The compact PDF export uses jsPDF's built-in Helvetica font. Emoji are written as `[emoji]`, and characters outside that font's supported encoding are written as `?`. This prevents the broken spacing and clipped lines that raw emoji surrogate pairs can otherwise cause in standard-font PDFs. These substitutions affect only the PDF; the original messages remain unchanged in the viewer, CSV, and JSON exports. Use **Print current page (Unicode)** and the browser's **Save as PDF** option when exact emoji or non-Latin glyphs are required.
 
-## **Acknowledgments**
+Chromium-based browsers in a secure context can stream CSV and JSON directly to a user-selected file. Other browsers use an in-memory Blob fallback for backups of up to 100,000 records.
 
-- Built with support from **OpenAI ChatGPT**.
-- Inspired by the need to manage SMS backups more effectively.
+## Privacy and security
+
+- The backup is processed locally in the browser.
+- Production HTML references only local scripts and stylesheets.
+- The Content Security Policy blocks network connections from the application.
+- No analytics, tracking, remote fonts, advertisements, or upload endpoint are included.
+- A local IndexedDB index remains in the browser so the last completed import can be restored after reload.
+
+Anyone with access to the same browser profile may be able to access that local index. Clear the site's browser storage when working on a shared computer.
+
+## Third-party software and licenses
+
+Exact dependency versions and their license files are documented in [`THIRD_PARTY_NOTICES.md`](THIRD_PARTY_NOTICES.md). File sizes and SHA-256 checksums are recorded in [`vendor/manifest.json`](vendor/manifest.json). The short answer is: yes, redistributed libraries should be identified, and their required copyright and license notices must be retained. Version 2 keeps those notices both in the vendor files and in `vendor/licenses/`.
+
+## Development
+
+Install the exact dependencies:
+
+```bash
+npm ci
+```
+
+Rebuild the local vendor directory:
+
+```bash
+npm run vendor
+```
+
+Run tests:
+
+```bash
+npm test
+npm run test:performance
+npm run test:browser
+npm run test:syntax
+```
+
+## Project license
+
+The original project code is released under the MIT License. See [`LICENSE`](LICENSE). Third-party components remain under their respective licenses.

@@ -1,0 +1,61 @@
+{
+  "generatedBy": "npm run vendor",
+  "files": [
+    {
+      "package": "bootstrap",
+      "version": "5.3.8",
+      "path": "vendor/bootstrap/bootstrap.min.css",
+      "sha256": "d85327d99c7a3ee1f9b5d0500d1370acea3ad2db39c163c2f51f232baedbdede",
+      "bytes": 232111
+    },
+    {
+      "package": "bootstrap",
+      "version": "5.3.8",
+      "path": "vendor/bootstrap/bootstrap.bundle.min.js",
+      "sha256": "e4fd49181388c48ec5040bd3fe66f57c29c8e67fcd8502b3354b96ec7ab47cc7",
+      "bytes": 80496
+    },
+    {
+      "package": "jspdf",
+      "version": "4.2.1",
+      "path": "vendor/jspdf/jspdf.umd.min.js",
+      "sha256": "e6551fcdc32f09d6853b2c5126d18d01d9447e0da618a41a11ebeee0f6c20d54",
+      "bytes": 420165
+    },
+    {
+      "package": "libphonenumber-js",
+      "version": "1.13.9",
+      "path": "vendor/libphonenumber/libphonenumber-min.js",
+      "sha256": "5a8c5710e0ae0a45c633955f4061e8da314c5f21728535271f683d4b79377f6b",
+      "bytes": 179108
+    },
+    {
+      "package": "bootstrap",
+      "version": "5.3.8",
+      "path": "vendor/licenses/bootstrap-LICENSE.txt",
+      "sha256": "4620c84ad5ce8602ff65640ed6b7c8b78ebb9e036584f0ebc1ccc88206a4bb51",
+      "bytes": 1093
+    },
+    {
+      "package": "jspdf",
+      "version": "4.2.1",
+      "path": "vendor/licenses/jspdf-LICENSE.txt",
+      "sha256": "dc388ec35ff463288cdde3588a36fd4ed12a45deff053243b37309acc9ef583b",
+      "bytes": 1142
+    },
+    {
+      "package": "libphonenumber-js",
+      "version": "1.13.9",
+      "path": "vendor/licenses/libphonenumber-js-LICENSE.txt",
+      "sha256": "ea6fc5fe0f905c5fdedd8f160f1dd73ce739004fc5f35656b35258aea126dbde",
+      "bytes": 1108
+    },
+    {
+      "package": "libphonenumber-js",
+      "version": "1.13.9",
+      "path": "vendor/licenses/libphonenumber-js-LICENSE.Apache.txt",
+      "sha256": "59899c6091b540582ed617e8eeaac4919dc985ccfc35459ee9752b699be5205b",
+      "bytes": 10172
+    }
+  ]
+}
