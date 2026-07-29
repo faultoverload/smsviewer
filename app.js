@@ -32,6 +32,8 @@ const state = {
 const elements = {
     uploadArea: document.getElementById("upload-area"),
     fileInput: document.getElementById("file-input"),
+    captureMediaCheckbox: document.getElementById("capture-media"),
+    importModeDescription: document.getElementById("import-mode-description"),
     status: document.getElementById("status-message"),
     progressPanel: document.getElementById("import-progress-panel"),
     progressTitle: document.getElementById("import-progress-title"),
@@ -117,6 +119,7 @@ function setImportingUI(importing) {
     state.importing = importing;
     elements.uploadArea.setAttribute("aria-disabled", String(importing));
     elements.fileInput.disabled = importing;
+    elements.captureMediaCheckbox.disabled = importing;
     elements.cancelImport.disabled = !importing;
     elements.progressPanel.hidden = !importing;
     elements.settingsButton.disabled = importing;
@@ -381,6 +384,7 @@ async function importBackup(file) {
         let lastYieldAt = performance.now();
 
         const parser = StreamParser.createParser({
+            captureMediaData: elements.captureMediaCheckbox.checked,
             onRoot(root) {
                 metadata.expectedRecords = root.count;
             },
@@ -1178,6 +1182,17 @@ function bindEvents() {
     elements.exportJSON.addEventListener("click", () => exportFullBackup("json"));
     elements.exportPDF.addEventListener("click", () => exportSelectedPDF().catch((error) => showStatus(error.message, "danger")));
     elements.printWindow.addEventListener("click", () => window.print());
+
+    elements.captureMediaCheckbox.addEventListener("change", () => {
+        const checked = elements.captureMediaCheckbox.checked;
+        if (checked) {
+            elements.importModeDescription.textContent =
+                "Media data will be stored in your browser. Disable for smaller, faster imports.";
+        } else {
+            elements.importModeDescription.textContent =
+                "Fast import: MMS media data is skipped. Text and attachment metadata are indexed. Re-import to load media.";
+        }
+    });
 }
 
 async function initialize() {

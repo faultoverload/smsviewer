@@ -15,9 +15,10 @@
     const RELEVANT_TAGS = new Set(["smses", "sms", "mms", "part", "addr"]);
 
     class BackupXMLTokenizer {
-        constructor({ onRecord = () => {}, onRoot = () => {} } = {}) {
+        constructor({ onRecord = () => {}, onRoot = () => {}, captureMediaData = true } = {}) {
             this.onRecord = onRecord;
             this.onRoot = onRoot;
+            this.captureMediaData = captureMediaData;
             this.state = "TEXT";
             this.tagName = "";
             this.endTagName = "";
@@ -176,9 +177,11 @@
                             this.position += 1;
                         } else if (char === '"' || char === "'") {
                             this.quote = char;
-                            // Always capture part data for media attachment support.
-                            // The base64 payload is needed to render inline images and video.
-                            this.skipAttributeValue = false;
+                            // Skip base64 data when media capture is disabled (fast import mode).
+                            // When enabled, the payload is needed to render inline images and video.
+                            this.skipAttributeValue = this.tagName.toLowerCase() === "part"
+                                && this.attrName.toLowerCase() === "data"
+                                && !this.captureMediaData;
                             index += 1;
                             this.position += 1;
                             this.state = "ATTR_VALUE";
