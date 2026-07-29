@@ -262,6 +262,7 @@ function prepareRecord(rawRecord, sequence, importId, country) {
         contentType: attachment.contentType || "application/octet-stream",
         name: attachment.name || "Attachment",
         contentLocation: attachment.contentLocation || null,
+        data: attachment.data || null,
         encodedBytes: Number(attachment.encodedBytes) || 0,
     }));
 
@@ -632,10 +633,43 @@ function renderMessages(messages, { scrollToBottom = false } = {}) {
             const list = document.createElement("div");
             list.className = "attachment-list text-body-secondary";
             message.attachments.forEach((attachment) => {
-                const item = document.createElement("div");
-                const approximateBytes = Math.floor((attachment.encodedBytes || 0) * 0.75);
-                item.textContent = `${attachment.name} · ${attachment.contentType}${approximateBytes ? ` · about ${Core.formatBytes(approximateBytes)}` : ""}`;
-                list.appendChild(item);
+                const mediaType = String(attachment.contentType || "");
+                const isImage = mediaType.startsWith("image/");
+                const isVideo = mediaType.startsWith("video/");
+
+                if ((isImage || isVideo) && attachment.data) {
+                    const wrapper = document.createElement("div");
+                    wrapper.className = "media-attachment mb-1";
+
+                    if (isImage) {
+                        const img = document.createElement("img");
+                        img.src = `data:${attachment.contentType};base64,${attachment.data}`;
+                        img.alt = attachment.name || "Image attachment";
+                        img.className = "img-fluid rounded";
+                        img.style.maxHeight = "400px";
+                        img.loading = "lazy";
+                        wrapper.appendChild(img);
+                    } else if (isVideo) {
+                        const video = document.createElement("video");
+                        video.src = `data:${attachment.contentType};base64,${attachment.data}`;
+                        video.className = "img-fluid rounded";
+                        video.style.maxHeight = "400px";
+                        video.controls = true;
+                        video.preload = "metadata";
+                        wrapper.appendChild(video);
+                    }
+
+                    const label = document.createElement("div");
+                    label.className = "small text-body-secondary";
+                    label.textContent = attachment.name || attachment.contentType;
+                    wrapper.appendChild(label);
+                    list.appendChild(wrapper);
+                } else {
+                    const item = document.createElement("div");
+                    const approximateBytes = Math.floor((attachment.encodedBytes || 0) * 0.75);
+                    item.textContent = `${attachment.name} · ${attachment.contentType}${approximateBytes ? ` · about ${Core.formatBytes(approximateBytes)}` : ""}`;
+                    list.appendChild(item);
+                }
             });
             body.appendChild(list);
         }

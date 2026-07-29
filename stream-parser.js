@@ -176,7 +176,9 @@
                             this.position += 1;
                         } else if (char === '"' || char === "'") {
                             this.quote = char;
-                            this.skipAttributeValue = this.tagName.toLowerCase() === "part" && this.attrName.toLowerCase() === "data";
+                            // Always capture part data for media attachment support.
+                            // The base64 payload is needed to render inline images and video.
+                            this.skipAttributeValue = false;
                             index += 1;
                             this.position += 1;
                             this.state = "ATTR_VALUE";
@@ -348,7 +350,8 @@
                         contentType,
                         name: this.firstUsable(attrs.name, attrs.fn, attrs.cl, "Attachment"),
                         contentLocation: this.firstUsable(attrs.cl, null),
-                        encodedBytes: attrs.__dataLength || 0,
+                        data: attrs.data || null,
+                        encodedBytes: (attrs.data && attrs.data.length) || attrs.__dataLength || 0,
                     });
                 }
                 return;
