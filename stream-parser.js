@@ -349,10 +349,11 @@
                 if (contentType === "text/plain" && text) {
                     this.currentMMS.textParts.push({ sequence: Number.parseInt(attrs.seq || "0", 10) || 0, text });
                 } else if (contentType && contentType !== "application/smil") {
+                    const fallbackName = this.partNameFallback(attrs, contentType);
                     this.currentMMS.attachments.push({
                         contentType,
-                        name: this.firstUsable(attrs.name, attrs.fn, attrs.cl, "Attachment"),
-                        contentLocation: this.firstUsable(attrs.cl, null),
+                        name: fallbackName,
+                        contentLocation: this.firstUsable(attrs.cl, null) || fallbackName,
                         data: attrs.data || null,
                         encodedBytes: (attrs.data && attrs.data.length) || attrs.__dataLength || 0,
                     });
@@ -436,6 +437,34 @@
         isUsable(value) {
             const text = String(value || "").trim();
             return Boolean(text && !["null", "undefined", "insert-address-token"].includes(text.toLowerCase()));
+        }
+
+        partNameFallback(attrs, contentType) {
+            const usable = this.firstUsable(attrs.name, attrs.fn, attrs.cl);
+            if (usable) return usable;
+
+            // Build a descriptive fallback from content type and sequence number.
+            const suffixMap = {
+                "image/jpeg": ".jpg",
+                "image/png": ".png",
+                "image/gif": ".gif",
+                "image/webp": ".webp",
+                "image/heic": ".heic",
+                "image/heif": ".heif",
+                "image/bmp": ".bmp",
+                "video/mp4": ".mp4",
+                "video/3gpp": ".3gp",
+                "video/mpeg": ".mpeg",
+                "video/quicktime": ".mov",
+                "audio/amr": ".amr",
+                "audio/aac": ".aac",
+                "audio/mpeg": ".mp3",
+                "audio/mp4": ".m4a",
+            };
+            const suffix = suffixMap[contentType] || "";
+            const seq = Number.parseInt(attrs.seq || "0", 10) || 0;
+            const base = contentType ? contentType.replace("/", "_") : "attachment";
+            return `${base}${seq ? `_${seq}` : ""}${suffix}`;
         }
     }
 

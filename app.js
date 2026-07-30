@@ -644,18 +644,51 @@ function renderMessages(messages, { scrollToBottom = false } = {}) {
                 if ((isImage || isVideo) && attachment.data) {
                     const wrapper = document.createElement("div");
                     wrapper.className = "media-attachment mb-1";
+                    const dataUri = `data:${attachment.contentType};base64,${attachment.data}`;
 
                     if (isImage) {
+                        const container = document.createElement("div");
+                        container.className = "position-relative d-inline-block";
+
                         const img = document.createElement("img");
-                        img.src = `data:${attachment.contentType};base64,${attachment.data}`;
+                        img.src = dataUri;
                         img.alt = attachment.name || "Image attachment";
                         img.className = "img-fluid rounded";
                         img.style.maxHeight = "400px";
                         img.loading = "lazy";
-                        wrapper.appendChild(img);
+                        container.appendChild(img);
+
+                        // HEIC and other unsupported formats fail silently in most browsers.
+                        // Replace the broken image with a download link so the user can open
+                        // it in a native viewer (e.g. iOS/macOS Photos for HEIC).
+                        img.onerror = () => {
+                            const placeholder = document.createElement("div");
+                            placeholder.className = "bg-light border rounded p-3 text-center";
+
+                            const icon = document.createElement("div");
+                            icon.className = "mb-2";
+                            icon.textContent = `🖼 ${attachment.name || attachment.contentType}`;
+                            placeholder.appendChild(icon);
+
+                            const msg = document.createElement("small");
+                            msg.className = "text-muted";
+                            const dl = document.createElement("a");
+                            dl.href = dataUri;
+                            dl.download = attachment.name || "attachment";
+                            dl.textContent = "Download";
+                            msg.append(
+                                `Your browser cannot display ${attachment.contentType} images. `,
+                                dl
+                            );
+                            placeholder.appendChild(msg);
+
+                            container.replaceChild(placeholder, img);
+                        };
+
+                        wrapper.appendChild(container);
                     } else if (isVideo) {
                         const video = document.createElement("video");
-                        video.src = `data:${attachment.contentType};base64,${attachment.data}`;
+                        video.src = dataUri;
                         video.className = "img-fluid rounded";
                         video.style.maxHeight = "400px";
                         video.controls = true;
@@ -663,9 +696,14 @@ function renderMessages(messages, { scrollToBottom = false } = {}) {
                         wrapper.appendChild(video);
                     }
 
+                    // Always show a download link + the attachment name below the media.
                     const label = document.createElement("div");
-                    label.className = "small text-body-secondary";
-                    label.textContent = attachment.name || attachment.contentType;
+                    label.className = "small text-body-secondary mt-1";
+                    const dl = document.createElement("a");
+                    dl.href = dataUri;
+                    dl.download = attachment.name || "attachment";
+                    dl.textContent = "Download";
+                    label.append(`${attachment.name || attachment.contentType} · `, dl);
                     wrapper.appendChild(label);
                     list.appendChild(wrapper);
                 } else {
