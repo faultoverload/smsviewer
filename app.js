@@ -640,8 +640,9 @@ function renderMessages(messages, { scrollToBottom = false } = {}) {
                 const mediaType = String(attachment.contentType || "");
                 const isImage = mediaType.startsWith("image/");
                 const isVideo = mediaType.startsWith("video/");
+                const isAudio = mediaType.startsWith("audio/");
 
-                if ((isImage || isVideo) && attachment.data) {
+                if ((isImage || isVideo || isAudio) && attachment.data) {
                     const wrapper = document.createElement("div");
                     wrapper.className = "media-attachment mb-1";
                     const dataUri = `data:${attachment.contentType};base64,${attachment.data}`;
@@ -694,6 +695,14 @@ function renderMessages(messages, { scrollToBottom = false } = {}) {
                         video.controls = true;
                         video.preload = "metadata";
                         wrapper.appendChild(video);
+                    } else if (isAudio) {
+                        const audio = document.createElement("audio");
+                        audio.src = dataUri;
+                        audio.controls = true;
+                        audio.preload = "metadata";
+                        audio.style.width = "100%";
+                        audio.style.maxWidth = "320px";
+                        wrapper.appendChild(audio);
                     }
 
                     // Always show a download link + the attachment name below the media.
