@@ -460,6 +460,9 @@
                 "audio/aac": ".aac",
                 "audio/mpeg": ".mp3",
                 "audio/mp4": ".m4a",
+                "audio/vnd.qcelp": ".qcp",
+                "audio/3gpp": ".3ga",
+                "audio/ogg": ".ogg",
             };
             const suffix = suffixMap[contentType] || "";
             const seq = Number.parseInt(attrs.seq || "0", 10) || 0;

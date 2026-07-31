@@ -702,6 +702,26 @@ function renderMessages(messages, { scrollToBottom = false } = {}) {
                         audio.preload = "metadata";
                         audio.style.width = "100%";
                         audio.style.maxWidth = "320px";
+                        audio.onerror = () => {
+                            const placeholder = document.createElement("div");
+                            placeholder.className = "bg-light border rounded p-3 text-center";
+                            const icon = document.createElement("div");
+                            icon.className = "mb-2";
+                            icon.textContent = `🎵 ${attachment.name || attachment.contentType}`;
+                            placeholder.appendChild(icon);
+                            const msg = document.createElement("small");
+                            msg.className = "text-muted";
+                            const dl = document.createElement("a");
+                            dl.href = dataUri;
+                            dl.download = attachment.name || "attachment";
+                            dl.textContent = "Download";
+                            msg.append(
+                                `Your browser cannot play ${attachment.contentType}. `,
+                                dl
+                            );
+                            placeholder.appendChild(msg);
+                            wrapper.replaceChild(placeholder, audio);
+                        };
                         wrapper.appendChild(audio);
                     }
 
@@ -718,7 +738,18 @@ function renderMessages(messages, { scrollToBottom = false } = {}) {
                 } else {
                     const item = document.createElement("div");
                     const approximateBytes = Math.floor((attachment.encodedBytes || 0) * 0.75);
-                    item.textContent = `${attachment.name} · ${attachment.contentType}${approximateBytes ? ` · about ${Core.formatBytes(approximateBytes)}` : ""}`;
+                    const label = `${attachment.name} · ${attachment.contentType}${approximateBytes ? ` · about ${Core.formatBytes(approximateBytes)}` : ""}`;
+                    item.textContent = label;
+
+                    if (attachment.data) {
+                        const dataUri = `data:${attachment.contentType};base64,${attachment.data}`;
+                        const dl = document.createElement("a");
+                        dl.href = dataUri;
+                        dl.download = attachment.name || "attachment";
+                        dl.textContent = "Download";
+                        dl.className = "ms-2";
+                        item.append(" · ", dl);
+                    }
                     list.appendChild(item);
                 }
             });
